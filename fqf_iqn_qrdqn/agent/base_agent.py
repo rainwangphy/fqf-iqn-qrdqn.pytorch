@@ -11,8 +11,8 @@ from fqf_iqn_qrdqn.utils import RunningMeanStats, LinearAnneaer
 
 class BaseAgent(ABC):
 
-    def __init__(self, env, test_env, log_dir, num_steps=5*(10**7),
-                 batch_size=32, memory_size=10**6, gamma=0.99, multi_step=1,
+    def __init__(self, env, test_env, log_dir, num_steps=5 * (10 ** 7),
+                 batch_size=32, memory_size=10 ** 6, gamma=0.99, multi_step=1,
                  update_interval=4, target_update_interval=10000,
                  start_steps=50000, epsilon_train=0.01, epsilon_eval=0.001,
                  epsilon_decay_steps=250000, double_q_learning=False,
@@ -26,7 +26,7 @@ class BaseAgent(ABC):
         torch.manual_seed(seed)
         np.random.seed(seed)
         self.env.seed(seed)
-        self.test_env.seed(2**31-1-seed)
+        self.test_env.seed(2 ** 31 - 1 - seed)
         # torch.backends.cudnn.deterministic = True  # It harms a performance.
         # torch.backends.cudnn.benchmark = False  # It harms a performance.
 
@@ -91,8 +91,8 @@ class BaseAgent(ABC):
                 break
 
     def is_update(self):
-        return self.steps % self.update_interval == 0\
-            and self.steps >= self.start_steps
+        return self.steps % self.update_interval == 0 \
+               and self.steps >= self.start_steps
 
     def is_random(self, eval=False):
         # Use e-greedy for evaluation.

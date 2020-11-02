@@ -39,7 +39,7 @@ def calculate_quantile_huber_loss(td_errors, taus, weights=None, kappa=1.0):
     # Calculate quantile huber loss element-wisely.
     element_wise_quantile_huber_loss = torch.abs(
         taus[..., None] - (td_errors.detach() < 0).float()
-        ) * element_wise_huber_loss / kappa
+    ) * element_wise_huber_loss / kappa
     assert element_wise_quantile_huber_loss.shape == (
         batch_size, N, N_dash)
 
@@ -103,3 +103,23 @@ class LinearAnneaer:
     def get(self):
         assert 0 < self.steps <= self.num_steps
         return self.a * self.steps + self.b
+
+
+###########-----------------DMOG------------------############################
+
+def cdf_gauss(x, mu, var):
+    return 0.5 * (1 + torch.erf((x-mu)/(torch.sqrt(2*var))))
+
+
+def calculate_qd():
+    return 0
+
+
+def calculate_cd():
+    return 0
+
+
+def calculate_dmog_loss():
+    dmog_loss = 0
+
+    return dmog_loss

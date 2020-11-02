@@ -26,7 +26,7 @@ class Flatten(nn.Module):
 
 class DQNBase(nn.Module):
 
-    def __init__(self, num_channels, embedding_dim=7*7*64):
+    def __init__(self, num_channels, embedding_dim=7 * 7 * 64):
         super(DQNBase, self).__init__()
 
         self.net = nn.Sequential(
@@ -53,7 +53,7 @@ class DQNBase(nn.Module):
 
 class FractionProposalNetwork(nn.Module):
 
-    def __init__(self, N=32, embedding_dim=7*7*64):
+    def __init__(self, N=32, embedding_dim=7 * 7 * 64):
         super(FractionProposalNetwork, self).__init__()
 
         self.net = nn.Sequential(
@@ -64,7 +64,6 @@ class FractionProposalNetwork(nn.Module):
         self.embedding_dim = embedding_dim
 
     def forward(self, state_embeddings):
-
         batch_size = state_embeddings.shape[0]
 
         # Calculate (log of) probabilities q_i in the paper.
@@ -79,7 +78,7 @@ class FractionProposalNetwork(nn.Module):
 
         # Calculate \tau_i (i=0,...,N).
         taus = torch.cat((tau_0, taus_1_N), dim=1)
-        assert taus.shape == (batch_size, self.N+1)
+        assert taus.shape == (batch_size, self.N + 1)
 
         # Calculate \hat \tau_i (i=0,...,N-1).
         tau_hats = (taus[:, :-1] + taus[:, 1:]).detach() / 2.
@@ -94,7 +93,7 @@ class FractionProposalNetwork(nn.Module):
 
 class CosineEmbeddingNetwork(nn.Module):
 
-    def __init__(self, num_cosines=64, embedding_dim=7*7*64, noisy_net=False):
+    def __init__(self, num_cosines=64, embedding_dim=7 * 7 * 64, noisy_net=False):
         super(CosineEmbeddingNetwork, self).__init__()
         linear = NoisyLinear if noisy_net else nn.Linear
 
@@ -111,13 +110,13 @@ class CosineEmbeddingNetwork(nn.Module):
 
         # Calculate i * \pi (i=1,...,N).
         i_pi = np.pi * torch.arange(
-            start=1, end=self.num_cosines+1, dtype=taus.dtype,
+            start=1, end=self.num_cosines + 1, dtype=taus.dtype,
             device=taus.device).view(1, 1, self.num_cosines)
 
         # Calculate cos(i * \pi * \tau).
         cosines = torch.cos(
             taus.view(batch_size, N, 1) * i_pi
-            ).view(batch_size * N, self.num_cosines)
+        ).view(batch_size * N, self.num_cosines)
 
         # Calculate embeddings of taus.
         tau_embeddings = self.net(cosines).view(
@@ -128,7 +127,7 @@ class CosineEmbeddingNetwork(nn.Module):
 
 class QuantileNetwork(nn.Module):
 
-    def __init__(self, num_actions, embedding_dim=7*7*64, dueling_net=False,
+    def __init__(self, num_actions, embedding_dim=7 * 7 * 64, dueling_net=False,
                  noisy_net=False):
         super(QuantileNetwork, self).__init__()
         linear = NoisyLinear if noisy_net else nn.Linear
@@ -179,7 +178,7 @@ class QuantileNetwork(nn.Module):
         else:
             advantages = self.advantage_net(embeddings)
             baselines = self.baseline_net(embeddings)
-            quantiles =\
+            quantiles = \
                 baselines + advantages - advantages.mean(1, keepdim=True)
 
         return quantiles.view(batch_size, N, self.num_actions)

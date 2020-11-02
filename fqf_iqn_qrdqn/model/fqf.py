@@ -1,12 +1,12 @@
 from .base_model import BaseModel
-from fqf_iqn_qrdqn.network import DQNBase, CosineEmbeddingNetwork,\
+from fqf_iqn_qrdqn.network import DQNBase, CosineEmbeddingNetwork, \
     FractionProposalNetwork, QuantileNetwork
 
 
 class FQF(BaseModel):
 
     def __init__(self, num_channels, num_actions, N=32, num_cosines=32,
-                 embedding_dim=7*7*64, dueling_net=False, noisy_net=False,
+                 embedding_dim=7 * 7 * 64, dueling_net=False, noisy_net=False,
                  target=False):
         super(FQF, self).__init__()
 
@@ -81,7 +81,7 @@ class FQF(BaseModel):
         assert quantile_hats.shape == (batch_size, self.N, self.num_actions)
 
         # Calculate expectations of value distribution.
-        q = ((taus[:, 1:, None] - taus[:, :-1, None]) * quantile_hats)\
+        q = ((taus[:, 1:, None] - taus[:, :-1, None]) * quantile_hats) \
             .sum(dim=1)
         assert q.shape == (batch_size, self.num_actions)
 

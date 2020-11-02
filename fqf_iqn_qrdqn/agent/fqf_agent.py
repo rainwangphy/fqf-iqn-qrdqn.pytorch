@@ -2,17 +2,17 @@ import torch
 from torch.optim import Adam, RMSprop
 
 from fqf_iqn_qrdqn.model import FQF
-from fqf_iqn_qrdqn.utils import disable_gradients, update_params,\
+from fqf_iqn_qrdqn.utils import disable_gradients, update_params, \
     calculate_quantile_huber_loss, evaluate_quantile_at_action
 from .base_agent import BaseAgent
 
 
 class FQFAgent(BaseAgent):
 
-    def __init__(self, env, test_env, log_dir, num_steps=5*(10**7),
+    def __init__(self, env, test_env, log_dir, num_steps=5 * (10 ** 7),
                  batch_size=32, N=32, num_cosines=64, ent_coef=0,
                  kappa=1.0, quantile_lr=5e-5, fraction_lr=2.5e-9,
-                 memory_size=10**6, gamma=0.99, multi_step=1,
+                 memory_size=10 ** 6, gamma=0.99, multi_step=1,
                  update_interval=4, target_update_interval=10000,
                  start_steps=50000, epsilon_train=0.01, epsilon_eval=0.001,
                  epsilon_decay_steps=250000, double_q_learning=False,
@@ -54,7 +54,7 @@ class FQFAgent(BaseAgent):
             list(self.online_net.dqn_net.parameters())
             + list(self.online_net.cosine_net.parameters())
             + list(self.online_net.quantile_net.parameters()),
-            lr=quantile_lr, eps=1e-2/batch_size)
+            lr=quantile_lr, eps=1e-2 / batch_size)
 
         # NOTE: The author said the training of Fraction Proposal Net is
         # unstable and value distribution degenerates into a deterministic
@@ -80,10 +80,10 @@ class FQFAgent(BaseAgent):
         self.target_net.sample_noise()
 
         if self.use_per:
-            (states, actions, rewards, next_states, dones), weights =\
+            (states, actions, rewards, next_states, dones), weights = \
                 self.memory.sample(self.batch_size)
         else:
-            states, actions, rewards, next_states, dones =\
+            states, actions, rewards, next_states, dones = \
                 self.memory.sample(self.batch_size)
             weights = None
 
@@ -91,7 +91,7 @@ class FQFAgent(BaseAgent):
         state_embeddings = self.online_net.calculate_state_embeddings(states)
 
         # Calculate fractions of current states and entropies.
-        taus, tau_hats, entropies =\
+        taus, tau_hats, entropies = \
             self.online_net.calculate_fractions(
                 state_embeddings=state_embeddings.detach())
 
@@ -133,19 +133,19 @@ class FQFAgent(BaseAgent):
         if self.learning_steps % self.log_interval == 0:
             self.writer.add_scalar(
                 'loss/fraction_loss', fraction_loss.detach().item(),
-                4*self.steps)
+                4 * self.steps)
             self.writer.add_scalar(
                 'loss/quantile_loss', quantile_loss.detach().item(),
-                4*self.steps)
+                4 * self.steps)
             if self.ent_coef > 0.0:
                 self.writer.add_scalar(
                     'loss/entropy_loss', entropy_loss.detach().item(),
-                    4*self.steps)
+                    4 * self.steps)
 
-            self.writer.add_scalar('stats/mean_Q', mean_q, 4*self.steps)
+            self.writer.add_scalar('stats/mean_Q', mean_q, 4 * self.steps)
             self.writer.add_scalar(
                 'stats/mean_entropy_of_value_distribution',
-                entropies.mean().detach().item(), 4*self.steps)
+                entropies.mean().detach().item(), 4 * self.steps)
 
     def calculate_fraction_loss(self, state_embeddings, sa_quantile_hats, taus,
                                 actions, weights):
@@ -159,7 +159,7 @@ class FQFAgent(BaseAgent):
                 self.online_net.calculate_quantiles(
                     taus=taus[:, 1:-1], state_embeddings=state_embeddings),
                 actions)
-            assert sa_quantiles.shape == (batch_size, self.N-1, 1)
+            assert sa_quantiles.shape == (batch_size, self.N - 1, 1)
 
         # NOTE: Proposition 1 in the paper requires F^{-1} is non-decreasing.
         # I relax this requirements and calculate gradients of taus even when
@@ -176,9 +176,9 @@ class FQFAgent(BaseAgent):
         assert values_2.shape == signs_2.shape
 
         gradient_of_taus = (
-            torch.where(signs_1, values_1, -values_1)
-            + torch.where(signs_2, values_2, -values_2)
-        ).view(batch_size, self.N-1)
+                torch.where(signs_1, values_1, -values_1)
+                + torch.where(signs_2, values_2, -values_2)
+        ).view(batch_size, self.N - 1)
         assert not gradient_of_taus.requires_grad
         assert gradient_of_taus.shape == taus[:, 1:-1].shape
 
@@ -186,8 +186,8 @@ class FQFAgent(BaseAgent):
         # are calculated using chain rule.
         if weights is not None:
             fraction_loss = ((
-                (gradient_of_taus * taus[:, 1:-1]).sum(dim=1, keepdim=True)
-            ) * weights).mean()
+                                 (gradient_of_taus * taus[:, 1:-1]).sum(dim=1, keepdim=True)
+                             ) * weights).mean()
         else:
             fraction_loss = \
                 (gradient_of_taus * taus[:, 1:-1]).sum(dim=1).mean()
@@ -210,7 +210,7 @@ class FQFAgent(BaseAgent):
                 self.online_net.sample_noise()
                 next_q = self.online_net.calculate_q(states=next_states)
             else:
-                next_state_embeddings =\
+                next_state_embeddings = \
                     self.target_net.calculate_state_embeddings(next_states)
                 next_q = self.target_net.calculate_q(
                     state_embeddings=next_state_embeddings,
@@ -222,7 +222,7 @@ class FQFAgent(BaseAgent):
 
             # Calculate features of next states.
             if self.double_q_learning:
-                next_state_embeddings =\
+                next_state_embeddings = \
                     self.target_net.calculate_state_embeddings(next_states)
 
             # Calculate quantile values of next states and actions at tau_hats.
@@ -235,7 +235,7 @@ class FQFAgent(BaseAgent):
 
             # Calculate target quantile values.
             target_sa_quantile_hats = rewards[..., None] + (
-                1.0 - dones[..., None]) * self.gamma_n * next_sa_quantile_hats
+                    1.0 - dones[..., None]) * self.gamma_n * next_sa_quantile_hats
             assert target_sa_quantile_hats.shape == (
                 self.batch_size, 1, self.N)
 
@@ -246,4 +246,4 @@ class FQFAgent(BaseAgent):
             td_errors, tau_hats, weights, self.kappa)
 
         return quantile_huber_loss, next_q.detach().mean().item(), \
-            td_errors.detach().abs()
+               td_errors.detach().abs()

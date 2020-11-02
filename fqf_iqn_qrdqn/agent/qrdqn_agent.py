@@ -2,15 +2,15 @@ import torch
 from torch.optim import Adam
 
 from fqf_iqn_qrdqn.model import QRDQN
-from fqf_iqn_qrdqn.utils import disable_gradients, update_params,\
+from fqf_iqn_qrdqn.utils import disable_gradients, update_params, \
     calculate_quantile_huber_loss, evaluate_quantile_at_action
 from .base_agent import BaseAgent
 
 
 class QRDQNAgent(BaseAgent):
 
-    def __init__(self, env, test_env, log_dir, num_steps=5*(10**7),
-                 batch_size=32, N=200, kappa=1.0, lr=5e-5, memory_size=10**6,
+    def __init__(self, env, test_env, log_dir, num_steps=5 * (10 ** 7),
+                 batch_size=32, N=200, kappa=1.0, lr=5e-5, memory_size=10 ** 6,
                  gamma=0.99, multi_step=1, update_interval=4,
                  target_update_interval=10000, start_steps=50000,
                  epsilon_train=0.01, epsilon_eval=0.001,
@@ -32,6 +32,7 @@ class QRDQNAgent(BaseAgent):
             num_channels=env.observation_space.shape[0],
             num_actions=self.num_actions, N=N, dueling_net=dueling_net,
             noisy_net=noisy_net).to(self.device)
+
         # Target network.
         self.target_net = QRDQN(
             num_channels=env.observation_space.shape[0],
@@ -45,11 +46,11 @@ class QRDQNAgent(BaseAgent):
 
         self.optim = Adam(
             self.online_net.parameters(),
-            lr=lr, eps=1e-2/batch_size)
+            lr=lr, eps=1e-2 / batch_size)
 
         # Fixed fractions.
         taus = torch.arange(
-            0, N+1, device=self.device, dtype=torch.float32) / N
+            0, N + 1, device=self.device, dtype=torch.float32) / N
         self.tau_hats = ((taus[1:] + taus[:-1]) / 2.0).view(1, N)
 
         self.N = N
@@ -61,10 +62,10 @@ class QRDQNAgent(BaseAgent):
         self.target_net.sample_noise()
 
         if self.use_per:
-            (states, actions, rewards, next_states, dones), weights =\
+            (states, actions, rewards, next_states, dones), weights = \
                 self.memory.sample(self.batch_size)
         else:
-            states, actions, rewards, next_states, dones =\
+            states, actions, rewards, next_states, dones = \
                 self.memory.sample(self.batch_size)
             weights = None
 
@@ -79,11 +80,11 @@ class QRDQNAgent(BaseAgent):
         if self.use_per:
             self.memory.update_priority(errors)
 
-        if 4*self.steps % self.log_interval == 0:
+        if 4 * self.steps % self.log_interval == 0:
             self.writer.add_scalar(
                 'loss/quantile_loss', quantile_loss.detach().item(),
-                4*self.steps)
-            self.writer.add_scalar('stats/mean_Q', mean_q, 4*self.steps)
+                4 * self.steps)
+            self.writer.add_scalar('stats/mean_Q', mean_q, 4 * self.steps)
 
     def calculate_loss(self, states, actions, rewards, next_states, dones,
                        weights):
@@ -116,7 +117,7 @@ class QRDQNAgent(BaseAgent):
 
             # Calculate target quantile values.
             target_sa_quantiles = rewards[..., None] + (
-                1.0 - dones[..., None]) * self.gamma_n * next_sa_quantiles
+                    1.0 - dones[..., None]) * self.gamma_n * next_sa_quantiles
             assert target_sa_quantiles.shape == (self.batch_size, 1, self.N)
 
         td_errors = target_sa_quantiles - current_sa_quantiles
@@ -126,4 +127,4 @@ class QRDQNAgent(BaseAgent):
             td_errors, self.tau_hats, weights, self.kappa)
 
         return quantile_huber_loss, next_q.detach().mean().item(), \
-            td_errors.detach().abs()
+               td_errors.detach().abs()

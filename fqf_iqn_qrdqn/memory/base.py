@@ -100,7 +100,7 @@ class LazyMemory(dict):
             (batch_size, *self.state_shape), dtype=np.uint8)
 
         for i, index in enumerate(indices):
-            _index = np.mod(index+bias, self.capacity)
+            _index = np.mod(index + bias, self.capacity)
             states[i, ...] = self['state'][_index]
             next_states[i, ...] = self['next_state'][_index]
 
@@ -126,7 +126,7 @@ class LazyMemory(dict):
         num_data = len(memory['state'])
         if self._p + num_data <= self.capacity:
             for key in self.np_keys:
-                self[key][self._p:self._p+num_data] = memory[key]
+                self[key][self._p:self._p + num_data] = memory[key]
         else:
             mid_index = self.capacity - self._p
             end_index = num_data - mid_index

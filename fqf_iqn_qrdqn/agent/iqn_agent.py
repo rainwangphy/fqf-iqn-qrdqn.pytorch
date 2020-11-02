@@ -2,16 +2,16 @@ import torch
 from torch.optim import Adam
 
 from fqf_iqn_qrdqn.model import IQN
-from fqf_iqn_qrdqn.utils import disable_gradients, update_params,\
+from fqf_iqn_qrdqn.utils import disable_gradients, update_params, \
     calculate_quantile_huber_loss, evaluate_quantile_at_action
 from .base_agent import BaseAgent
 
 
 class IQNAgent(BaseAgent):
 
-    def __init__(self, env, test_env, log_dir, num_steps=5*(10**7),
+    def __init__(self, env, test_env, log_dir, num_steps=5 * (10 ** 7),
                  batch_size=32, N=64, N_dash=64, K=32, num_cosines=64,
-                 kappa=1.0, lr=5e-5, memory_size=10**6, gamma=0.99,
+                 kappa=1.0, lr=5e-5, memory_size=10 ** 6, gamma=0.99,
                  multi_step=1, update_interval=4, target_update_interval=10000,
                  start_steps=50000, epsilon_train=0.01, epsilon_eval=0.001,
                  epsilon_decay_steps=250000, double_q_learning=False,
@@ -45,7 +45,7 @@ class IQNAgent(BaseAgent):
 
         self.optim = Adam(
             self.online_net.parameters(),
-            lr=lr, eps=1e-2/batch_size)
+            lr=lr, eps=1e-2 / batch_size)
 
         self.N = N
         self.N_dash = N_dash
@@ -59,10 +59,10 @@ class IQNAgent(BaseAgent):
         self.target_net.sample_noise()
 
         if self.use_per:
-            (states, actions, rewards, next_states, dones), weights =\
+            (states, actions, rewards, next_states, dones), weights = \
                 self.memory.sample(self.batch_size)
         else:
-            states, actions, rewards, next_states, dones =\
+            states, actions, rewards, next_states, dones = \
                 self.memory.sample(self.batch_size)
             weights = None
 
@@ -80,11 +80,11 @@ class IQNAgent(BaseAgent):
         if self.use_per:
             self.memory.update_priority(errors)
 
-        if 4*self.steps % self.log_interval == 0:
+        if 4 * self.steps % self.log_interval == 0:
             self.writer.add_scalar(
                 'loss/quantile_loss', quantile_loss.detach().item(),
-                4*self.steps)
-            self.writer.add_scalar('stats/mean_Q', mean_q, 4*self.steps)
+                4 * self.steps)
+            self.writer.add_scalar('stats/mean_Q', mean_q, 4 * self.steps)
 
     def calculate_loss(self, state_embeddings, actions, rewards, next_states,
                        dones, weights):
@@ -109,7 +109,7 @@ class IQNAgent(BaseAgent):
                 self.online_net.sample_noise()
                 next_q = self.online_net.calculate_q(states=next_states)
             else:
-                next_state_embeddings =\
+                next_state_embeddings = \
                     self.target_net.calculate_state_embeddings(next_states)
                 next_q = self.target_net.calculate_q(
                     state_embeddings=next_state_embeddings)
@@ -120,7 +120,7 @@ class IQNAgent(BaseAgent):
 
             # Calculate features of next states.
             if self.double_q_learning:
-                next_state_embeddings =\
+                next_state_embeddings = \
                     self.target_net.calculate_state_embeddings(next_states)
 
             # Sample next fractions.
@@ -137,7 +137,7 @@ class IQNAgent(BaseAgent):
 
             # Calculate target quantile values.
             target_sa_quantiles = rewards[..., None] + (
-                1.0 - dones[..., None]) * self.gamma_n * next_sa_quantiles
+                    1.0 - dones[..., None]) * self.gamma_n * next_sa_quantiles
             assert target_sa_quantiles.shape == (
                 self.batch_size, 1, self.N_dash)
 
@@ -148,4 +148,4 @@ class IQNAgent(BaseAgent):
             td_errors, taus, weights, self.kappa)
 
         return quantile_huber_loss, next_q.detach().mean().item(), \
-            td_errors.detach().abs()
+               td_errors.detach().abs()

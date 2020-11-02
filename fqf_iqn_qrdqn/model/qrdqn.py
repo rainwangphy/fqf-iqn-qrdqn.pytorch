@@ -6,7 +6,7 @@ from fqf_iqn_qrdqn.network import DQNBase, NoisyLinear
 
 class QRDQN(BaseModel):
 
-    def __init__(self, num_channels, num_actions, N=200, embedding_dim=7*7*64,
+    def __init__(self, num_channels, num_actions, N=200, embedding_dim=7 * 7 * 64,
                  dueling_net=False, noisy_net=False):
         super(QRDQN, self).__init__()
         linear = NoisyLinear if noisy_net else nn.Linear
@@ -41,7 +41,7 @@ class QRDQN(BaseModel):
 
     def forward(self, states=None, state_embeddings=None):
         assert states is not None or state_embeddings is not None
-        batch_size = states.shape[0] if states is not None\
+        batch_size = states.shape[0] if states is not None \
             else state_embeddings.shape[0]
 
         if state_embeddings is None:
@@ -55,8 +55,8 @@ class QRDQN(BaseModel):
                 state_embeddings).view(batch_size, self.N, self.num_actions)
             baselines = self.baseline_net(
                 state_embeddings).view(batch_size, self.N, 1)
-            quantiles = baselines + advantages\
-                - advantages.mean(dim=2, keepdim=True)
+            quantiles = baselines + advantages \
+                        - advantages.mean(dim=2, keepdim=True)
 
         assert quantiles.shape == (batch_size, self.N, self.num_actions)
 
@@ -64,7 +64,7 @@ class QRDQN(BaseModel):
 
     def calculate_q(self, states=None, state_embeddings=None):
         assert states is not None or state_embeddings is not None
-        batch_size = states.shape[0] if states is not None\
+        batch_size = states.shape[0] if states is not None \
             else state_embeddings.shape[0]
 
         # Calculate quantiles.

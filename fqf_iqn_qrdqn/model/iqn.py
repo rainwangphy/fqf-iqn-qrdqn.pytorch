@@ -1,14 +1,14 @@
 import torch
 
 from .base_model import BaseModel
-from fqf_iqn_qrdqn.network import DQNBase, CosineEmbeddingNetwork,\
+from fqf_iqn_qrdqn.network import DQNBase, CosineEmbeddingNetwork, \
     QuantileNetwork
 
 
 class IQN(BaseModel):
 
     def __init__(self, num_channels, num_actions, K=32, num_cosines=32,
-                 embedding_dim=7*7*64, dueling_net=False, noisy_net=False):
+                 embedding_dim=7 * 7 * 64, dueling_net=False, noisy_net=False):
         super(IQN, self).__init__()
 
         # Feature extractor of DQN.
@@ -44,7 +44,7 @@ class IQN(BaseModel):
 
     def calculate_q(self, states=None, state_embeddings=None):
         assert states is not None or state_embeddings is not None
-        batch_size = states.shape[0] if states is not None\
+        batch_size = states.shape[0] if states is not None \
             else state_embeddings.shape[0]
 
         if state_embeddings is None:
