@@ -107,6 +107,7 @@ class LinearAnneaer:
 
 
 ###########-----------------DMOG------------------############################
+
 def evaluate_mog_at_action(mog_pi, mog_mu, mog_sigma, actions):
     assert mog_pi.shape[0] == actions.shape[0]
 
@@ -124,25 +125,16 @@ def evaluate_mog_at_action(mog_pi, mog_mu, mog_sigma, actions):
     return mog_pi_sa, mog_mu_sa, mog_sigma_sa
 
 
-def cdf_gauss(x, mu, var):
-    return 0.5 * (1 + torch.erf((x - mu) / (torch.sqrt(2 * var))))
-
-
-def calculate_qd(pi, mu, sigma,
-                 tar_pi, tar_mu, tar_sigma,
-                 eta, weight):
-    return 0
-
-
-def calculate_cd(pi, mu, sigma,
-                 tar_pi, tar_mu, tar_sigma,
-                 eta, weight):
-    return 0
+def cdf_gauss(x, mu, sigma):
+    return 0.5 * (1 + torch.erf((x - mu) / (torch.sqrt(torch.tensor(2.0)) * sigma)))
 
 
 def calculate_dmog_loss(pi, mu, sigma,
                         tar_pi, tar_mu, tar_sigma,
-                        eta, weight):
+                        eta, beta, delta,
+                        weight):
     dmog_loss = 0
+
+    # cramer distance
 
     return dmog_loss

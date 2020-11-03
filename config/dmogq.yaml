@@ -1,7 +1,9 @@
 num_steps: 50000000  # It equals to 200M frames.
 batch_size: 32
 num_gaussians: 5
-kappa: 1.0
+eta: 0.5
+beta: 3
+delta: 10
 lr: 5.e-5
 memory_size: 1000000
 gamma: 0.99

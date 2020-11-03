@@ -8,7 +8,9 @@ from fqf_iqn_qrdqn.utils import calculate_dmog_loss
 
 class DMoGQAgent(BaseAgent):
     def __init__(self, env, test_env, log_dir, num_steps=5 * (10 ** 7),
-                 batch_size=32, num_gaussians=5, eta=0.5, lr=5e-5, memory_size=10 ** 6,
+                 batch_size=32,
+                 num_gaussians=5, eta=0.5, beta=3, delta=10,
+                 lr=5e-5, memory_size=10 ** 6,
                  gamma=0.99, multi_step=1, update_interval=4,
                  target_update_interval=10000, start_steps=50000,
                  epsilon_train=0.01, epsilon_eval=0.001,
@@ -25,6 +27,8 @@ class DMoGQAgent(BaseAgent):
                                          cuda, seed)
         self.num_gaussians = num_gaussians
         self.eta = eta
+        self.beta = beta
+        self.delta = delta
         # Online network.
         self.online_net = DMoGQ(
             num_channels=env.observation_space.shape[0],
@@ -92,12 +96,13 @@ class DMoGQAgent(BaseAgent):
             # Calculate target mog values.
             target_mog_mu_sa = rewards[..., None] + (1.0 - dones[..., None]) * self.gamma_n * next_mog_mu_sa
             target_mog_pi_sa = torch.tensor(1.0 / self.num_gaussians) * dones[..., None] + (
-                        1.0 - dones[..., None]) * next_mog_pi_sa
+                    1.0 - dones[..., None]) * next_mog_pi_sa
             target_mog_sigma_sa = torch.tensor(1.0) * dones[..., None] + (
-                        1.0 - dones[..., None]) * self.gamma_n * next_mog_sigma_sa
+                    1.0 - dones[..., None]) * self.gamma_n * next_mog_sigma_sa
             assert target_mog_mu_sa.shape == (self.batch_size, self.num_gaussians, 1)
 
         dmog_loss = calculate_dmog_loss(mog_pi_sa, mog_mu_sa, mog_sigma_sa,
                                         target_mog_mu_sa, target_mog_pi_sa, target_mog_sigma_sa,
-                                        eta=self.eta, weight=weights)
+                                        eta=self.eta, beta=self.beta, delta=self.delta,
+                                        weight=weights)
         return dmog_loss
