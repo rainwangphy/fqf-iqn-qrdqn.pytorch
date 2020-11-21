@@ -20,6 +20,9 @@ apt-get install vim
 6. `vim /etc/ssh/sshd_config`, change `PermitRootLogin prohibit-password` to `PermitRootLogin prohibit-password`
 and uncomment it
 7. `passwd root`
-8. `service ssh restart`
+8. Restart the SSH service of the container: `service ssh restart`
 
-Then, you need configure Pycharm to remote-connect to the container. 
+Then, you need configure PyCharm to remote-connect to the container. 
+When setting PyCharm, you need access the server's port with the password set
+for the container. 
+

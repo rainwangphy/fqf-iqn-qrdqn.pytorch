@@ -1,9 +1,9 @@
 from fqf_iqn_qrdqn.agent.base_agent import BaseAgent
 from DMoGDiscrete.DMoGQ import DMoGQ
-from fqf_iqn_qrdqn.utils import disable_gradients, update_params, evaluate_mog_at_action
+from fqf_iqn_qrdqn.utils import disable_gradients, update_params
 from torch.optim import Adam
 import torch
-from fqf_iqn_qrdqn.utils import calculate_dmog_loss
+from DMoGDiscrete.utils import calculate_dmog_loss, evaluate_mog_at_action
 
 
 class DMoGQAgent(BaseAgent):
